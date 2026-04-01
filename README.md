@@ -31,4 +31,8 @@ pip install cryptography threading os
 
     Chat: Una vez establecido el túnel cifrado, pueden intercambiar mensajes en tiempo real.
     Usa !exit para cerrar la conexión.
+
+Nota:
+>    La idea original era usar cifrado simetrico pero la cosa se complico XD
+
 Fin :3 
