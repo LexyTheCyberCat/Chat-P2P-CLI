@@ -1,6 +1,12 @@
 #!/usr/bin/python3
 
-import socket, threading
+# Imports
+import socket
+import threading
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+import os
 
 # colores
 ROJO = "\033[91m"
@@ -8,8 +14,8 @@ VERDE = "\033[92m"
 AZUL = "\033[94m"
 RESET = "\033[0m"
 
-#variables
-user = "cliente" # cambiar por el que quieras
+# variables
+user = "cliente"
 running = True
 ip_destino = input("Ingrese la IP del servidor: ")
 puerto_input = input("Ingrese el puerto (por defecto 5000): ")
@@ -21,33 +27,94 @@ except ValueError:
     print(f"{ROJO}Puerto invalido, usando 5000.{RESET}")
     puerto = 5000
 
-# funcion para recibir mensajes del servidor
+
+# Encriptar mensaje con AES
+def encrypt_message(aes_key, plaintext):
+    aesgcm = AESGCM(aes_key)
+    nonce = os.urandom(12)
+    ciphertext = aesgcm.encrypt(nonce, plaintext.encode(), None)
+    return nonce + ciphertext
+
+# Desencriptar mensaje con AES
+def decrypt_message(aes_key, data):
+    aesgcm = AESGCM(aes_key)
+    nonce = data[:12]
+    ciphertext = data[12:]
+    return aesgcm.decrypt(nonce, ciphertext, None).decode()
+
+# recibir clave pública
+def recibir_clave_publica(s):
+    try:
+        data = s.recv(2048)
+        if not data:
+            print(f"{ROJO}No se recibió la clave pública.{RESET}")
+            return None
+        
+        public_key = serialization.load_pem_public_key(data)
+        return public_key
+
+    except Exception as e:
+        print(f"Error al recibir clave pública: {e}")
+        return None
+
+
+# recibir mensajes (todavía en texto plano)
 def recibir(s):
     global running
     while running:
         try:
-            # Si el servidor cierra la conexión, data será vacío
             data = s.recv(1024)
             if not data:
-                print(f"\n{AZUL}[System] {ROJO}el servidor cerro la conexion\n Presione ENTER para salir del script.{RESET}\n{AZUL}Bye...{RESET}")
+                print(f"\n{AZUL}[System]{RESET} {ROJO}Servidor cerró conexión{RESET}")
                 running = False
                 break
-            
-            print(f"\n{AZUL}[Servidor]{RESET}: {data.decode()}")
-            print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
-            
-        except Exception as f:
-            print(f"Error: {f}")
+            try:
+                mensaje = decrypt_message(aes_key, data)
+                print(f"\n{VERDE}[Servidor]{RESET}: {mensaje}")
+                print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
+            except Exception as e:
+                print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
+        except Exception as e:
+            print(f"\n{ROJO}Error recibiendo: {e}{RESET}")
             running = False
             break
 
+# conexión
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     try:
         s.connect((ip_destino, puerto))
-        print(f"{VERDE}[+]{RESET} Conectado a {ip_destino}:{puerto}")
+        print(f"{VERDE}[+]{RESET} Conectando a {ip_destino}:{puerto}")
+
+        # HANDSHAKE
+        public_key = recibir_clave_publica(s)
+
+        if public_key is None:
+            exit(1)
+
+        print(f"{VERDE}[+]{RESET} Clave pública recibida")
+
+        # generar AES
+        aes_key = AESGCM.generate_key(bit_length=128)
+
+        # cifrar AES con RSA
+        encrypted_key = public_key.encrypt(
+            aes_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+
+        # enviar AES cifrada
+        s.sendall(encrypted_key)
+
+        print(f"{VERDE}[+]{RESET} AES enviada correctamente")
+
+        # arrancar recepción
         threading.Thread(target=recibir, args=(s,), daemon=True).start()
 
-        # Loop principal para enviar mensajes al servidor
+        # loop chat
         while running:
             try:
                 msg = input(f"{AZUL}[{user}] > {RESET}")
@@ -59,14 +126,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     print(f"{AZUL}Bye...{RESET}")
                     running = False
                     break
-                s.sendall(msg.encode())
-            
+
+                # todavía texto plano (próximo paso: AES)
+                encrypt = encrypt_message(aes_key, msg)
+                s.sendall(encrypt)
             except (BrokenPipeError, OSError):
-                print(f"{AZUL}[System] {ROJO}Conexion cerrada del lado del servidor.\nPresione ENTER para salir del script.{RESET}\n{AZUL}Bye...{RESET}")
+                print(f"{ROJO}Conexión cerrada{RESET}")
                 running = False
                 break
 
     except Exception as e:
         print(f"Error al conectar: {e}")
-
-# LO MISMO CON ESTE
