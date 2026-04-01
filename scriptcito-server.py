@@ -76,7 +76,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     try:
         s.bind((client_ip, client_port))
         s.listen()
-        print(f"{VERDE}[+]{RESET} Escuchando en {client_ip}:{client_port}")
+        print(f"{VERDE}[+]{RESET} Escuchando en: {client_port}")
 
         conn, addr = s.accept()
 
