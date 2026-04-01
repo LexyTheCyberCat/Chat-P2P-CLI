@@ -1,4 +1,4 @@
-Scriptcito Chat: Encrypted TCP Communication
+# Scriptcito Chat: Encrypted TCP Communication
 
 Scriptcito es una herramienta de chat cliente-servidor escrita en Python que implementa un sistema de comunicación cifrada de extremo a extremo (E2EE). Utiliza un esquema de criptografía híbrida para garantizar la confidencialidad e integridad de los mensajes.
 🚀 Características
