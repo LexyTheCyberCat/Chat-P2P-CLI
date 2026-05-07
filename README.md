@@ -18,8 +18,7 @@ Scriptcito es una herramienta de chat cliente-servidor escrita en Python que imp
     Librerías: cryptography threading os
 
 Puedes instalar las dependencias con:
-
-pip install cryptography threading
+``pip install -r requirements.txt``
 
 📖 Modo de Uso
 
