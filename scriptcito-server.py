@@ -31,10 +31,10 @@ public_key = private_key.public_key()
 try:
     client_port = int(puerto_input.lower()) if puerto_input else 5000
     if client_port not in range(1, 65536):
-        raise OverflowError("Puerto fuera de rango")
+        print(f"{ROJO}[-]{RESET} Puerto fuera de rango, usando 5000.")
         client_port = 5000
 except ValueError:
-    print(f"{ROJO}Puerto invalido, usando 5000.{RESET}")
+    print(f"{ROJO}[-]{RESET} Puerto invalido, usando 5000.")
     client_port = 5000
 
 def encrypt_message(aes_key, plaintext):
@@ -56,7 +56,7 @@ def recibir(conn):
         try:
             data = conn.recv(1024)
             if not data:
-                print(f"\n{ROJO}[-] Cliente desconectado{RESET}")
+                print(f"\n{ROJO}[-]{RESET} Cliente desconectado")
                 running = False
                 break
             try:                
@@ -67,7 +67,7 @@ def recibir(conn):
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
 
         except Exception as e:
-            print(f"\nError recibiendo: {e}")
+            print(f"\n{ROJO}[-]{RESET} Error recibiendo: {e}")
             running = False
             break
 
@@ -79,7 +79,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     try:
         s.bind((client_ip, client_port))
         s.listen()
-        print(f"{VERDE}[+]{RESET} Escuchando en: {client_port}")
+        print(f"{AZUL}[*]{RESET} Escuchando en: {client_port}")
 
         conn, addr = s.accept()
 
@@ -101,7 +101,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             encrypted_aes_key = conn.recv(4096)
 
             if not encrypted_aes_key:
-                print(f"{ROJO}No se recibió AES key{RESET}")
+                print(f"{ROJO}[-]{RESET} No se recibió AES key")
                 exit(1)
 
             # descifrar AES
@@ -136,7 +136,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     conn.sendall(encrypt)
 
                 except (BrokenPipeError, OSError):
-                    print(f"{ROJO}Conexión cerrada{RESET}")
+                    print(f"{ROJO}[-]{RESET} Conexión cerrada")
                     running = False
                     break
 

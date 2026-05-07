@@ -24,10 +24,10 @@ puerto_input = input("Ingrese el puerto (por defecto 5000): ")
 try:
     puerto = int(puerto_input.lower()) if puerto_input else 5000
     if puerto not in range(1, 65536):
-        raise OverflowError("Puerto fuera de rango")
+        print(f"{ROJO}[-]{RESET} Puerto fuera de rango, usando 5000.")
         puerto = 5000
 except ValueError:
-    print(f"{ROJO}Puerto invalido, usando 5000.{RESET}")
+    print(f"{ROJO}[-]{RESET} Puerto invalido, usando 5000.")
     puerto = 5000
 
 
@@ -78,7 +78,7 @@ def recibir(s):
             except Exception as e:
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
         except Exception as e:
-            print(f"\n{ROJO}Error recibiendo: {e}{RESET}")
+            print(f"\n{ROJO}[-]{RESET} Error recibiendo: {e}")
             running = False
             break
 
@@ -134,7 +134,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 encrypt = encrypt_message(aes_key, msg)
                 s.sendall(encrypt)
             except (BrokenPipeError, OSError):
-                print(f"{ROJO}Conexión cerrada{RESET}")
+                print(f"{ROJO}[-]{RESET} Conexión cerrada")
                 running = False
                 break
 
