@@ -31,7 +31,7 @@ public_key = private_key.public_key()
 try:
     client_port = int(puerto_input.lower()) if puerto_input else 5000
     if client_port not in range(1, 65536):
-        raise ValueError("Puerto fuera de rango")
+        raise OverflowError("Puerto fuera de rango")
         client_port = 5000
 except ValueError:
     print(f"{ROJO}Puerto invalido, usando 5000.{RESET}")

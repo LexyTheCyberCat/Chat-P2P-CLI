@@ -24,7 +24,7 @@ puerto_input = input("Ingrese el puerto (por defecto 5000): ")
 try:
     puerto = int(puerto_input.lower()) if puerto_input else 5000
     if puerto not in range(1, 65536):
-        raise ValueError("Puerto fuera de rango")
+        raise OverflowError("Puerto fuera de rango")
         puerto = 5000
 except ValueError:
     print(f"{ROJO}Puerto invalido, usando 5000.{RESET}")
