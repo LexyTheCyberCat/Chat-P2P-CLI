@@ -15,7 +15,7 @@ AZUL = "\033[94m"
 RESET = "\033[0m"
 
 # variables
-user = "felix"
+user = "servidor"
 running = True
 client_ip = input("Ingrese la IP para ESCUCHAR (ej. 0.0.0.0): ")
 puerto_input = input("Desea especificar un puerto? (por defecto 5000): ")
@@ -56,21 +56,20 @@ def recibir(conn):
         try:
             data = conn.recv(1024)
             if not data:
-                print(f"\n{ROJO}[-]{RESET} {client_name} desconectado")
+                print(f"\n{ROJO}[-]{RESET} Cliente desconectado. Pulse ENTER para salir.")
                 running = False
                 break
             try:                
                 mensaje = decrypt_message(aes_key, data)
-                print(f"\n{VERDE}[{client_name}]{RESET}: {mensaje}")
+                print(f"\n{VERDE}[Cliente]{RESET}: {mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
             except Exception as e:
-                print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
+                print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET} - {e}")
 
         except Exception as e:
             print(f"\n{ROJO}[-]{RESET} Error recibiendo: {e}")
             running = False
             break
-
 
 # socket
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -85,8 +84,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         with conn:
             print(f"{VERDE}[+]{RESET} Conectado con {addr[0]}:{addr[1]}")
-
-            # HANDSHAKE
 
             # enviar clave pública
             public_key_pem = public_key.public_bytes(
@@ -119,15 +116,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             # hilo receptor
             threading.Thread(target=recibir, args=(conn,), daemon=True).start()
 
-            # recibir nombre del cliente
-            data = conn.recv(1024)
-            if data:
-                try:
-                    client_name = decrypt_message(aes_key, data)
-                    print(f"{VERDE}[+]{RESET} Cliente se identificó como: {client_name}")
-                except Exception as e:
-                    print(f"{ROJO}[-]{RESET} Error al desencriptar nombre del cliente: {e}")
-                
             # loop envío
             while running:
                 try:
