@@ -34,6 +34,7 @@ Puedes instalar las dependencias con:
 Nota:
 >    La idea original era usar cifrado simetrico pero la cosa se complico XD
 
-Nota: > La rama estable es Main, la rama Development no se recomienda debido a su poca estabilidad y que posiblemente llegue a romper sus librerias o incluso su sistema. Si desea insistir se recomienda altamente crear un entorno aislado con python3 -m venv su-entorno
+Nota 2:
+> La rama estable es Main, la rama Development no se recomienda debido a su poca estabilidad y que posiblemente llegue a romper sus librerias o incluso su sistema. Si desea insistir se recomienda altamente crear un entorno aislado con python3 -m venv su-entorno
 
 Fin :3 
