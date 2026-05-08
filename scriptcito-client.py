@@ -15,7 +15,7 @@ AZUL = "\033[94m"
 RESET = "\033[0m"
 
 # variables
-user = "client"
+user = "cliente"
 running = True
 ip_destino = input("Ingrese la IP del servidor: ")
 puerto_input = input("Ingrese el puerto (por defecto 5000): ")
@@ -73,7 +73,7 @@ def recibir(s):
                 break
             try:
                 mensaje = decrypt_message(aes_key, data)
-                print(f"\n{VERDE}[servidor]{RESET}: {mensaje}")
+                print(f"\n{VERDE}[Servidor]{RESET}: {mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
             except Exception as e:
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
@@ -115,8 +115,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print(f"{VERDE}[+]{RESET} AES enviada correctamente")
 
         # arrancar recepción
-        encrypt_name = encrypt_message(aes_key, user)
-        s.sendall(encrypt_name)
         threading.Thread(target=recibir, args=(s,), daemon=True).start()
 
         # loop chat
@@ -136,7 +134,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 encrypt = encrypt_message(aes_key, msg)
                 s.sendall(encrypt)
             except (BrokenPipeError, OSError):
-                print(f"{ROJO}[-]{RESET} Conexión cerrada por el servidor.")
+                print(f"{ROJO}[-]{RESET} Conexión cerrada")
                 running = False
                 break
 

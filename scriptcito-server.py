@@ -56,7 +56,7 @@ def recibir(conn):
         try:
             data = conn.recv(1024)
             if not data:
-                print(f"\n{ROJO}[-]{RESET} Cliente desconectado. Pulse ENTER para salir.")
+                print(f"\n{ROJO}[-]{RESET} Cliente desconectado")
                 running = False
                 break
             try:                
@@ -64,12 +64,13 @@ def recibir(conn):
                 print(f"\n{VERDE}[Cliente]{RESET}: {mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
             except Exception as e:
-                print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET} - {e}")
+                print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
 
         except Exception as e:
             print(f"\n{ROJO}[-]{RESET} Error recibiendo: {e}")
             running = False
             break
+
 
 # socket
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -84,6 +85,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         with conn:
             print(f"{VERDE}[+]{RESET} Conectado con {addr[0]}:{addr[1]}")
+
+            # HANDSHAKE
 
             # enviar clave pública
             public_key_pem = public_key.public_bytes(
