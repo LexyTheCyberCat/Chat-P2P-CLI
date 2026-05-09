@@ -61,7 +61,7 @@ def recibir(conn):
                 break
             try:                
                 mensaje = decrypt_message(aes_key, data)
-                print(f"\n{VERDE}[Cliente]{RESET}: {mensaje}")
+                print(f"\n{VERDE}[{client_name}]{RESET}: {mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
             except Exception as e:
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET} - {e}")
@@ -115,6 +115,21 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
             # hilo receptor
             threading.Thread(target=recibir, args=(conn,), daemon=True).start()
+
+            #Recibir nombre del cliente
+            data = conn.recv(1024)
+            if data:
+                try:
+                    client_name = decrypt_message(aes_key, data)
+                    print(f"{VERDE}[+]{RESET} Cliente se identificó como: {client_name}")
+                except Exception as e:
+                    print(f"{ROJO}[!] Error al desencriptar nombre del cliente{RESET} - {e}")
+            else:
+                print(f"{ROJO}[-]{RESET} No se recibió nombre del cliente")
+            
+            # enviar nombre al cliente
+            name_encrypt = encrypt_message(aes_key, user)
+            conn.sendall(name_encrypt)
 
             # loop envío
             while running:

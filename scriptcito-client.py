@@ -115,9 +115,22 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print(f"{VERDE}[+]{RESET} AES enviada correctamente")
 
         # arrancar recepción
-        encrypt_name = encrypt_message(aes_key, user)
-        s.sendall(encrypt_name)
         threading.Thread(target=recibir, args=(s,), daemon=True).start()
+
+        # enviar nombre al servidor
+        name_encrypt = encrypt_message(aes_key, user)
+        s.sendall(name_encrypt)
+        
+        # recibir nombre del servidor
+        data = s.recv(1024)
+        if data:
+            try:
+                server_name = decrypt_message(aes_key, data)
+                print(f"{VERDE}[+]{RESET} Servidor se identificó como: {server_name}")
+            except Exception as e:
+                print(f"{ROJO}[!] Error al desencriptar nombre del servidor{RESET} - {e}")
+        else:
+            print(f"{ROJO}[-]{RESET} No se recibió nombre del servidor")
 
         # loop chat
         while running:
