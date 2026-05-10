@@ -125,12 +125,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 except Exception as e:
                     print(f"{ROJO}[!] Error al desencriptar nombre del cliente{RESET} - {e}")
             else:
-                print(f"{ROJO}[-]{RESET} No se recibió nombre del cliente")
-            
+                print(f"{ROJO}[-]{RESET} No se recibió nombre del cliente. Usando 'cliente' por defecto.")
+                client_name = "cliente"
+
             # enviar nombre al cliente
             name_encrypt = encrypt_message(aes_key, user)
             conn.sendall(name_encrypt)
-
+            
             # loop envío
             while running:
                 try:

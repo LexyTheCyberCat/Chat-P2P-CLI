@@ -124,14 +124,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         # recibir nombre del servidor
         data = s.recv(1024)
         if data:
-            try:
-                server_name = decrypt_message(aes_key, data)
-                print(f"{VERDE}[+]{RESET} Servidor se identificó como: {server_name}")
-            except Exception as e:
-                print(f"{ROJO}[!] Error al desencriptar nombre del servidor{RESET} - {e}")
+            server_name = decrypt_message(aes_key, data)
+            print(f"{VERDE}[+]{RESET} Nombre del servidor: {server_name}")
         else:
-            print(f"{ROJO}[-]{RESET} No se recibió nombre del servidor")
-
+            print(f"{ROJO}[-]{RESET} No se recibió el nombre del servidor.")
+            running = False 
         # loop chat
         while running:
             try:
