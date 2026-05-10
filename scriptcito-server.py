@@ -15,7 +15,7 @@ AZUL = "\033[94m"
 RESET = "\033[0m"
 
 # variables
-user = "servidor"
+user = "server"
 running = True
 client_ip = input("Ingrese la IP para ESCUCHAR (ej. 0.0.0.0): ")
 puerto_input = input("Desea especificar un puerto? (por defecto 5000): ")
@@ -36,6 +36,13 @@ try:
 except ValueError:
     print(f"{ROJO}[-]{RESET} Puerto invalido, usando 5000.")
     client_port = 5000
+
+# Validar nombre de usuario
+if not user.isalnum() or len(user) > 20:
+    print(f"{ROJO}[!]{RESET} Nombre de usuario inválido.Debe ser alfanumérico y no exceder 20 caracteres.")
+    exit(1)
+if user.lower() in ["servidor", "cliente", "server", "client"]:
+    print(f"{ROJO}[!]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
 
 def encrypt_message(aes_key, plaintext):
     aesgcm = AESGCM(aes_key)
@@ -61,7 +68,8 @@ def recibir(conn):
                 break
             try:                
                 mensaje = decrypt_message(aes_key, data)
-                print(f"\n{VERDE}[{client_name}]{RESET}: {mensaje}")
+                print(f"{mensaje}")
+                #print(f"\n{VERDE}[{client_name}]{RESET}: {mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
             except Exception as e:
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET} - {e}")
@@ -116,26 +124,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             # hilo receptor
             threading.Thread(target=recibir, args=(conn,), daemon=True).start()
 
-            #Recibir nombre del cliente
-            data = conn.recv(1024)
-            if data:
-                try:
-                    client_name = decrypt_message(aes_key, data)
-                    print(f"{VERDE}[+]{RESET} Cliente se identificó como: {client_name}")
-                except Exception as e:
-                    print(f"{ROJO}[!] Error al desencriptar nombre del cliente{RESET} - {e}")
-            else:
-                print(f"{ROJO}[-]{RESET} No se recibió nombre del cliente. Usando 'cliente' por defecto.")
-                client_name = "cliente"
-
-            # enviar nombre al cliente
-            name_encrypt = encrypt_message(aes_key, user)
-            conn.sendall(name_encrypt)
-            
             # loop envío
             while running:
                 try:
                     mensaje = input(f"{AZUL}[{user}] > {RESET}")
+                    msg = f"\n{AZUL}[{user}] > {RESET}" + mensaje
 
                     if not running:
                         break
@@ -145,13 +138,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         running = False
                         break
                     # cifrar mensaje con AES
-                    encrypt = encrypt_message(aes_key, mensaje)
+                    encrypt = encrypt_message(aes_key, msg)
                     conn.sendall(encrypt)
 
                 except (BrokenPipeError, OSError):
                     print(f"{ROJO}[-]{RESET} Conexión cerrada")
                     running = False
                     break
+            s.close()
 
     except Exception as e:
         print(f"Error: {e}")

@@ -20,6 +20,14 @@ running = True
 ip_destino = input("Ingrese la IP del servidor: ")
 puerto_input = input("Ingrese el puerto (por defecto 5000): ")
 
+# Validar nombre de usuario
+if not user.isalnum() or len(user) > 20:
+    print(f"{ROJO}[!]{RESET} Nombre de usuario inválido.Debe ser alfanumérico y no exceder 20 caracteres.")
+    exit(1)
+if user.lower() in ["servidor", "cliente", "server", "client"]:
+    print(f"{ROJO}[!]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
+
+
 # validar puerto
 try:
     puerto = int(puerto_input.lower()) if puerto_input else 5000
@@ -73,7 +81,7 @@ def recibir(s):
                 break
             try:
                 mensaje = decrypt_message(aes_key, data)
-                print(f"\n{VERDE}[servidor]{RESET}: {mensaje}")
+                print(f"{mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
             except Exception as e:
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
@@ -116,39 +124,28 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         # arrancar recepción
         threading.Thread(target=recibir, args=(s,), daemon=True).start()
-
-        # enviar nombre al servidor
-        name_encrypt = encrypt_message(aes_key, user)
-        s.sendall(name_encrypt)
         
-        # recibir nombre del servidor
-        data = s.recv(1024)
-        if data:
-            server_name = decrypt_message(aes_key, data)
-            print(f"{VERDE}[+]{RESET} Nombre del servidor: {server_name}")
-        else:
-            print(f"{ROJO}[-]{RESET} No se recibió el nombre del servidor.")
-            running = False 
         # loop chat
         while running:
             try:
-                msg = input(f"{AZUL}[{user}] > {RESET}")
-                
+                mensaje = input(f"{AZUL}[{user}] > {RESET}")
+                msg = f"\n{AZUL}[{user}] > {RESET}" + mensaje
                 if not running:
                     break
-
-                if msg.lower() in ["!exit", "!quit"]:
+                if mensaje.lower() in ["!exit", "!quit"]:
                     print(f"{AZUL}Bye...{RESET}")
                     running = False
                     break
 
-                # todavía texto plano (próximo paso: AES)
+                # encriptar en AES y enviar
                 encrypt = encrypt_message(aes_key, msg)
                 s.sendall(encrypt)
+
             except (BrokenPipeError, OSError):
                 print(f"{ROJO}[-]{RESET} Conexión cerrada por el servidor.")
                 running = False
                 break
+        s.close()
 
     except Exception as e:
         print(f"Error al conectar: {e}")
