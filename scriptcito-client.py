@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 # Imports
+import os
 import socket
 import threading
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-import os
 
 # colores
 ROJO = "\033[91m"
@@ -27,7 +27,6 @@ if not user.isalnum() or len(user) > 20:
 if user.lower() in ["servidor", "cliente", "server", "client"]:
     print(f"{ROJO}[!]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
 
-
 # validar puerto
 try:
     puerto = int(puerto_input.lower()) if puerto_input else 5000
@@ -37,7 +36,6 @@ try:
 except ValueError:
     print(f"{ROJO}[-]{RESET} Puerto invalido, usando 5000.")
     puerto = 5000
-
 
 # Encriptar mensaje con AES
 def encrypt_message(aes_key, plaintext):
@@ -68,7 +66,6 @@ def recibir_clave_publica(s):
         print(f"Error al recibir clave pública: {e}")
         return None
 
-
 # recibir mensajes (todavía en texto plano)
 def recibir(s):
     global running
@@ -76,17 +73,22 @@ def recibir(s):
         try:
             data = s.recv(1024)
             if not data:
-                print(f"\n{AZUL}[System]{RESET} {ROJO}Servidor cerró conexión{RESET}")
+                print(f"\n{AZUL}[System]{RESET} {ROJO}Servidor cerró conexión. Pulse ENTER para salir.{RESET}")
+                s.close()
                 running = False
                 break
+
             try:
                 mensaje = decrypt_message(aes_key, data)
                 print(f"{mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
+
             except Exception as e:
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET}")
+
         except Exception as e:
             print(f"\n{ROJO}[-]{RESET} Error recibiendo: {e}")
+            s.close()
             running = False
             break
 
@@ -100,6 +102,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         public_key = recibir_clave_publica(s)
 
         if public_key is None:
+            s.close()
             exit(1)
 
         print(f"{VERDE}[+]{RESET} Clave pública recibida")
@@ -134,6 +137,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     break
                 if mensaje.lower() in ["!exit", "!quit"]:
                     print(f"{AZUL}Bye...{RESET}")
+                    s.close()
                     running = False
                     break
 
@@ -143,9 +147,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
             except (BrokenPipeError, OSError):
                 print(f"{ROJO}[-]{RESET} Conexión cerrada por el servidor.")
+                s.close()
                 running = False
                 break
         s.close()
 
     except Exception as e:
         print(f"Error al conectar: {e}")
+        s.close()
+        exit(1)
+s.close()
+exit(0)

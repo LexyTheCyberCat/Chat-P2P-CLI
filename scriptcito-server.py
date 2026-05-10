@@ -40,7 +40,7 @@ except ValueError:
 # Validar nombre de usuario
 if not user.isalnum() or len(user) > 20:
     print(f"{ROJO}[!]{RESET} Nombre de usuario inválido.Debe ser alfanumérico y no exceder 20 caracteres.")
-    exit(1)
+    exit(0)
 if user.lower() in ["servidor", "cliente", "server", "client"]:
     print(f"{ROJO}[!]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
 
@@ -64,18 +64,19 @@ def recibir(conn):
             data = conn.recv(1024)
             if not data:
                 print(f"\n{ROJO}[-]{RESET} Cliente desconectado. Pulse ENTER para salir.")
+                s.close()
                 running = False
                 break
             try:                
                 mensaje = decrypt_message(aes_key, data)
                 print(f"{mensaje}")
-                #print(f"\n{VERDE}[{client_name}]{RESET}: {mensaje}")
                 print(f"{AZUL}[{user}] > {RESET}", end="", flush=True)
             except Exception as e:
                 print(f"\n{ROJO}[!] Error al desencriptar mensaje{RESET} - {e}")
 
         except Exception as e:
             print(f"\n{ROJO}[-]{RESET} Error recibiendo: {e}")
+            s.close()
             running = False
             break
 
@@ -107,6 +108,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
             if not encrypted_aes_key:
                 print(f"{ROJO}[-]{RESET} No se recibió AES key")
+                s.close()
                 exit(1)
 
             # descifrar AES
@@ -131,10 +133,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     msg = f"\n{AZUL}[{user}] > {RESET}" + mensaje
 
                     if not running:
+                        s.close()
                         break
-
+                        exit(0)
                     if mensaje.lower() in ["!exit", "!quit"]:
                         print(f"{AZUL}Bye...{RESET}")
+                        s.close()
                         running = False
                         break
                     # cifrar mensaje con AES
@@ -143,6 +147,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
                 except (BrokenPipeError, OSError):
                     print(f"{ROJO}[-]{RESET} Conexión cerrada")
+                    s.close()
                     running = False
                     break
             s.close()
@@ -150,3 +155,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     except Exception as e:
         print(f"Error: {e}")
         exit(1)
+s.close()
+exit(0)
