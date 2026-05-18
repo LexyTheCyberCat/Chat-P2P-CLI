@@ -1,12 +1,14 @@
 #!/usr/bin/python3
 
 # Imports
-import os
 import socket
 import threading
+import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+from signal import signal, SIGINT
+from sys import exit
 
 # colores
 ROJO = "\033[91m"
@@ -20,12 +22,21 @@ running = True
 ip_destino = input("Ingrese la IP del servidor: ")
 puerto_input = input("Ingrese el puerto (por defecto 5000): ")
 
+def signal_handler(sig, frame):
+    global running
+    print(f"\n{ROJO}[!]{RESET} Interrupción detectada, cerrando...")
+    running = False
+    s.close()
+    exit(0)
+
+signal(SIGINT, signal_handler)
+
 # Validar nombre de usuario
 if not user.isalnum() or len(user) > 20:
     print(f"{ROJO}[!]{RESET} Nombre de usuario inválido.Debe ser alfanumérico y no exceder 20 caracteres.")
-    exit(1)
+    exit(0)
 if user.lower() in ["servidor", "cliente", "server", "client"]:
-    print(f"{ROJO}[!]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
+    print(f"{AZUL}[*]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
 
 # validar puerto
 try:

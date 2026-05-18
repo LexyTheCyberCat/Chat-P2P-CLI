@@ -3,10 +3,12 @@
 # Imports
 import socket
 import threading
+import os
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-import os
+from signal import signal, SIGINT
+from sys import exit
 
 # colores
 ROJO = "\033[91m"
@@ -19,6 +21,15 @@ user = "server"
 running = True
 client_ip = input("Ingrese la IP para ESCUCHAR (ej. 0.0.0.0): ")
 puerto_input = input("Desea especificar un puerto? (por defecto 5000): ")
+
+def signal_handler(sig, frame):
+    global running
+    print(f"\n{ROJO}[!]{RESET} Interrupción detectada, cerrando...")
+    running = False
+    s.close()
+    exit(0)
+
+signal(SIGINT, signal_handler)
 
 # generar claves RSA
 private_key = rsa.generate_private_key(
@@ -39,10 +50,10 @@ except ValueError:
 
 # Validar nombre de usuario
 if not user.isalnum() or len(user) > 20:
-    print(f"{ROJO}[!]{RESET} Nombre de usuario inválido.Debe ser alfanumérico y no exceder 20 caracteres.")
+    print(f"{ROJO}[!]{RESET} Nombre de usuario inválido. Debe ser alfanumérico y no exceder 20 caracteres.")
     exit(0)
 if user.lower() in ["servidor", "cliente", "server", "client"]:
-    print(f"{ROJO}[!]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
+    print(f"{AZUL}[*]{RESET} Esta utilizando un nombre de usuario por defecto, puede cambiarlo modificando la variable 'user'.")
 
 def encrypt_message(aes_key, plaintext):
     aesgcm = AESGCM(aes_key)
@@ -56,7 +67,7 @@ def decrypt_message(aes_key, data):
     ciphertext = data[12:]
     return aesgcm.decrypt(nonce, ciphertext, None).decode()
 
-# recibir mensajes (aún sin AES)
+# recibir mensajes
 def recibir(conn):
     global running
     while running:
